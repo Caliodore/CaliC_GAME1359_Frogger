@@ -11,6 +11,11 @@ public class FrogController : MonoBehaviour
     public Vector3 directionToPlayer;
 
     Collider2D barrierCollider;
+    LayerMask platformLayer;
+    LayerMask barrierLayer;
+
+    //Rigidbody playerRB;
+    FrogController thisScript;
 
     [SerializeField] Animator frogAnimator;
 
@@ -24,18 +29,26 @@ public class FrogController : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        direction2D = new Vector2(0, 0);
         canMove = true;
         frogAnimator = GetComponentInChildren<Animator>();
+        thisScript = GetComponent<FrogController>();
+        //playerRB = GetComponent<Rigidbody>();
         //frogUp = new Vector3(0, 0, 1);
     }
 
     // Update is called once per frame
     void Update()
     {
-        //if (canMove) 
-        //{
-            PlayerUpdate();
-        //}
+        PlayerUpdate();
+    }
+
+    private void FixedUpdate()
+    {
+        if(onPlatform)
+        { 
+            
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -59,7 +72,7 @@ public class FrogController : MonoBehaviour
             {
                 transform.rotation = Quaternion.Euler(0,0,0);
                 direction2D = Vector2.up;
-                PlayerMove(direction2D);
+                PlayerMove(Vector2.up);
             }
             if(Input.GetKeyDown(KeyCode.DownArrow))
             {
@@ -71,22 +84,23 @@ public class FrogController : MonoBehaviour
             {
                 transform.rotation = Quaternion.Euler(0,0,90);
                 direction2D = Vector2.left;
-                PlayerMove(direction2D);
+                thisScript.PlayerMove(direction2D);
             }
             if(Input.GetKeyDown(KeyCode.RightArrow))
             {
                 transform.rotation = Quaternion.Euler(0,0,270);
                 direction2D = Vector2.right;
-                PlayerMove(direction2D);    
+                thisScript.PlayerMove(direction2D);    
             }
         }
     }
 
     void PlayerMove(Vector2 _direction)
     {
-        Vector2 _destination = transform.position + (Vector3)_direction;
-        LayerMask platformLayer = LayerMask.GetMask("Platform");
-        LayerMask barrierLayer = LayerMask.GetMask("Barrier");
+        Vector2 transform2D = new Vector2(transform.position.x, transform.position.y);
+        Vector2 _destination = transform2D + _direction;
+        platformLayer = LayerMask.GetMask("Platform");
+        barrierLayer = LayerMask.GetMask("Barrier");
         Collider2D platformCollider = Physics2D.OverlapBox(_destination, Vector2.zero, 0, platformLayer);
         barrierCollider = Physics2D.OverlapBox(_destination, Vector2.zero, 0, barrierLayer);
 
@@ -102,24 +116,15 @@ public class FrogController : MonoBehaviour
                 return;
             }
             
-
-            //if(platformCollider != null)
-            //{ 
-            //    transform.SetParent(platformCollider.transform);
-            //    onPlatform = true;
-            //}
-            //else 
-            //{ 
-            //    transform.SetParent(null);
-            //    onPlatform = false;
-            //}
-
-            while(gameObject.transform.parent.CompareTag("Platform"))
+            if(platformCollider != null)
             { 
-                //if(barrierCollider != null)
-                //{ 
-                //    KillFrog();    
-                //}
+                transform.SetParent(platformCollider.transform);
+                onPlatform = true;
+            }
+            else 
+            { 
+                transform.SetParent(null);
+                onPlatform = false;
             }
             
             StartCoroutine(LerpMove(_destination));
@@ -151,10 +156,22 @@ public class FrogController : MonoBehaviour
         while(barrierCollider != null)
         {
             directionTest = barrierCollider.transform.InverseTransformDirection(direction2D).normalized;
+            bool spaceCheck = Physics2D.Raycast(gameObject.transform.position, directionTest, 1f, platformLayer);
+            if(spaceCheck)
+            { 
+                transform.Translate(directionTest);
+            }
             if(directionTest == (Vector3)direction2D)
+            { 
                 canMove = true;
+            }
             yield return null;
         }
+    }
+
+    IEnumerator PlatformBarrierCheck()
+    { 
+        yield return null;    
     }
 
     IEnumerator FrogDeath() 
