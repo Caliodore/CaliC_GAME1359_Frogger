@@ -115,17 +115,10 @@ public class FrogController : MonoBehaviour
                 StartCoroutine(BarrierCheck());
                 return;
             }
-<<<<<<< HEAD
 
 
             if (platformCollider != null)
             {
-                transform.SetParent(platformCollider.transform);
-                onPlatform = true;
-=======
-            
-            if(platformCollider != null)
-            { 
                 transform.SetParent(platformCollider.transform);
                 onPlatform = true;
             }
@@ -133,21 +126,7 @@ public class FrogController : MonoBehaviour
             { 
                 transform.SetParent(null);
                 onPlatform = false;
->>>>>>> ea5d5c50f3cd8890ef7456d36abeb228ca025fe9
             }
-            else
-            {
-                transform.SetParent(null);
-                onPlatform = false;
-            }
-
-            //while(gameObject.transform.parent.CompareTag("Platform"))
-            //{ 
-            //    //if(barrierCollider != null)
-            //    //{ 
-            //    //    KillFrog();    
-            //    //}
-            //}
 
             StartCoroutine(LerpMove(_destination));
         }
@@ -204,4 +183,6 @@ public class FrogController : MonoBehaviour
         GameManager.instance.SpawnFrog();
         Destroy(this.gameObject);
     }
-}
+
+} 
+
