@@ -40,7 +40,7 @@ public class FrogController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if(other.gameObject.CompareTag("Obstacle"))
+        if(other.gameObject.CompareTag("Obstacle") || other.gameObject.CompareTag("Kill"))
         { 
             KillFrog();    
         }
@@ -101,27 +101,27 @@ public class FrogController : MonoBehaviour
                 StartCoroutine(BarrierCheck());
                 return;
             }
-            
 
-            //if(platformCollider != null)
-            //{ 
-            //    transform.SetParent(platformCollider.transform);
-            //    onPlatform = true;
-            //}
-            //else 
-            //{ 
-            //    transform.SetParent(null);
-            //    onPlatform = false;
-            //}
 
-            while(gameObject.transform.parent.CompareTag("Platform"))
-            { 
-                //if(barrierCollider != null)
-                //{ 
-                //    KillFrog();    
-                //}
+            if (platformCollider != null)
+            {
+                transform.SetParent(platformCollider.transform);
+                onPlatform = true;
             }
-            
+            else
+            {
+                transform.SetParent(null);
+                onPlatform = false;
+            }
+
+            //while(gameObject.transform.parent.CompareTag("Platform"))
+            //{ 
+            //    //if(barrierCollider != null)
+            //    //{ 
+            //    //    KillFrog();    
+            //    //}
+            //}
+
             StartCoroutine(LerpMove(_destination));
         }
     }
