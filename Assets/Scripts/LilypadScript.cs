@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class LilypadScript : MonoBehaviour
 {
-    public GameObject FrogImage;
+    public GameObject frogImage;
     public bool isOccupied;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        FrogImage.SetActive(false);
+        frogImage.SetActive(false);
         isOccupied = false;
     }
 
@@ -17,17 +17,21 @@ public class LilypadScript : MonoBehaviour
     {
         if(other.gameObject.CompareTag("Player"))
         {
+            Debug.Log("Player made it to pad!");
             if(!isOccupied)
             {
+                Debug.LogError("Player jumped on an unoccupied pad.");
                 isOccupied = true;
-                FrogImage.SetActive(true);
+                frogImage.SetActive(true);
+                GameManager.instance.lilypadCounter++;
                 GameManager.instance.SpawnFrog();
                 Destroy(other.gameObject);
             }
-        }
-        else 
-        { 
-            other.GetComponent<FrogController>().KillFrog();    
+            else 
+            { 
+                Debug.LogError("Player jumped on an occupied pad.");
+                other.GetComponent<FrogController>().KillFrog();    
+            }
         }
     }
 }

@@ -29,7 +29,7 @@ public class MoveCycleScript : MonoBehaviour
             vehiclePosition.x = leftEdge.x - objSize;
             transform.position = vehiclePosition;
         }
-        else if((moveDirection.x < 0) && ((transform.position.x + objSize) < rightEdge.x))
+        else if((moveDirection.x < 0) && ((transform.position.x + objSize) < leftEdge.x))
         { 
             Vector2 vehiclePosition = transform.position;
             vehiclePosition.x = rightEdge.x + objSize;

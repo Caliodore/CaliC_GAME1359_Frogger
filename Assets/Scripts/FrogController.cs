@@ -1,11 +1,13 @@
 using System;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class FrogController : MonoBehaviour
 {
     Vector3 forwardDirection;
     Vector3 frogUp;
+    Vector3 gameBorder;
     Vector2 direction2D;
     public Vector3 directionTest;
     public Vector3 directionToPlayer;
@@ -33,8 +35,6 @@ public class FrogController : MonoBehaviour
         canMove = true;
         frogAnimator = GetComponentInChildren<Animator>();
         thisScript = GetComponent<FrogController>();
-        //playerRB = GetComponent<Rigidbody>();
-        //frogUp = new Vector3(0, 0, 1);
     }
 
     // Update is called once per frame
@@ -45,10 +45,7 @@ public class FrogController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(onPlatform)
-        { 
-            
-        }
+        TPtoLilypad();        
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -57,6 +54,18 @@ public class FrogController : MonoBehaviour
         { 
             KillFrog();    
         }
+        else if(other.gameObject.CompareTag("River"))
+        { 
+            onRiver = true;    
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if(other.gameObject.CompareTag("River"))
+        { 
+            onRiver = false;    
+        }        
     }
 
     public void KillFrog()
@@ -67,10 +76,10 @@ public class FrogController : MonoBehaviour
     void PlayerUpdate()
     {
         if(!isDead)
-        { 
-            if(Input.GetKeyDown(KeyCode.UpArrow))
+        {     
+            if (Input.GetKeyDown(KeyCode.UpArrow))
             {
-                transform.rotation = Quaternion.Euler(0,0,0);
+                transform.rotation = Quaternion.Euler(0, 0, 0);
                 direction2D = Vector2.up;
                 PlayerMove(Vector2.up);
             }
@@ -90,7 +99,7 @@ public class FrogController : MonoBehaviour
             {
                 transform.rotation = Quaternion.Euler(0,0,270);
                 direction2D = Vector2.right;
-                thisScript.PlayerMove(direction2D);    
+                thisScript.PlayerMove(direction2D);
             }
         }
     }
@@ -99,6 +108,7 @@ public class FrogController : MonoBehaviour
     {
         Vector2 transform2D = new Vector2(transform.position.x, transform.position.y);
         Vector2 _destination = transform2D + _direction;
+
         platformLayer = LayerMask.GetMask("Platform");
         barrierLayer = LayerMask.GetMask("Barrier");
         Collider2D platformCollider = Physics2D.OverlapBox(_destination, Vector2.zero, 0, platformLayer);
@@ -108,14 +118,6 @@ public class FrogController : MonoBehaviour
         { 
             canMove = false;
             frogAnimator.SetTrigger("Hop");
-            //PlayerRotate(_direction);
-
-            if(barrierCollider != null)
-            {
-                StartCoroutine(BarrierCheck());
-                return;
-            }
-
 
             if (platformCollider != null)
             {
@@ -132,6 +134,14 @@ public class FrogController : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        gameBorder = transform.position;
+        gameBorder.x = Mathf.Clamp(gameBorder.x, -4, 4);
+        gameBorder.y = Mathf.Clamp(gameBorder.y, -6, 9);
+        transform.position = gameBorder;
+    }
+
     IEnumerator LerpMove(Vector2 _destination)
     {
         Vector2 startPos = transform.position;
@@ -143,36 +153,20 @@ public class FrogController : MonoBehaviour
             float _time = elapsedTime / duration;
             transform.position = Vector2.Lerp(startPos, _destination, _time);
             elapsedTime += Time.deltaTime;
+            if(onRiver)
+            { 
+                if(!onPlatform)
+                { 
+                    KillFrog();
+                    yield break;
+                }
+            }
             yield return null;
         }
 
         transform.position = _destination;
         yield return new WaitForSeconds(moveTimer);
         canMove = true;
-        
-    }
-
-    IEnumerator BarrierCheck()
-    {
-        while(barrierCollider != null)
-        {
-            directionTest = barrierCollider.transform.InverseTransformDirection(direction2D).normalized;
-            bool spaceCheck = Physics2D.Raycast(gameObject.transform.position, directionTest, 1f, platformLayer);
-            if(spaceCheck)
-            { 
-                transform.Translate(directionTest);
-            }
-            if(directionTest == (Vector3)direction2D)
-            { 
-                canMove = true;
-            }
-            yield return null;
-        }
-    }
-
-    IEnumerator PlatformBarrierCheck()
-    { 
-        yield return null;    
     }
 
     IEnumerator FrogDeath() 
@@ -180,8 +174,18 @@ public class FrogController : MonoBehaviour
         isDead = true;
         frogAnimator.SetTrigger("Dead");
         yield return new WaitForSeconds(1.5f);
+        Debug.Log("Player had a life taken away.");
+        GameManager.instance.lifeCounter = GameManager.instance.lifeCounter - 1;
         GameManager.instance.SpawnFrog();
         Destroy(this.gameObject);
+    }
+
+    private void TPtoLilypad()
+    { 
+        if(Input.GetKeyDown(KeyCode.X))
+        { 
+            this.gameObject.transform.position = FindAnyObjectByType<LilypadScript>().gameObject.transform.position;    
+        }
     }
 
 } 
